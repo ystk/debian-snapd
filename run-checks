@@ -1,0 +1,150 @@
+#!/bin/sh
+export LANG=C.UTF-8
+export LANGUAGE=en
+set -eu
+
+if which goctest >/dev/null; then
+    goctest="goctest"
+else
+    goctest="go test"
+fi
+
+STATIC=
+UNIT=
+SPREAD=
+DEPRECATED=
+
+case "${1:-all}" in
+    all)
+        STATIC=1
+        UNIT=1
+        DEPRECATED=1
+        ;;
+    --static)
+        STATIC=1
+        ;;
+    --unit)
+        UNIT=1
+        ;;
+    --spread)
+        SPREAD=1
+        ;;
+    *)
+        echo "Wrong flag ${1}. To run a single suite use --static, --unit, --spread."
+        exit 1
+esac
+
+CURRENTTRAP="true"
+EXIT_CODE=99
+store_exit_code() {
+    EXIT_CODE=$?
+}
+exit_with_exit_code() {
+    exit $EXIT_CODE
+}
+addtrap() {
+    CURRENTTRAP="$CURRENTTRAP ; $1"
+    trap "store_exit_code; $CURRENTTRAP ; exit_with_exit_code" EXIT
+}
+
+endmsg() {
+    if [ $EXIT_CODE -eq 0 ]; then
+        p="success.txt"
+        m="All good, what could possibly go wrong."
+    else
+        p="failure.txt"
+        m="Crushing failure and despair."
+    fi
+    echo
+    if [ -t 1 -a -z "$STATIC" ]; then
+        cat "data/$p"
+    else
+        echo "$m"
+    fi
+}
+addtrap endmsg
+
+# Append the coverage profile of a package to the project coverage.
+append_coverage() {
+    local profile="$1"
+    if [ -f $profile ]; then
+        cat $profile | grep -v "mode: set" | cat >> .coverage/coverage.out
+        rm $profile
+    fi
+}
+
+if [ "$STATIC" = 1 ]; then
+    ./get-deps.sh
+
+    # Run static tests.
+    echo Checking docs
+    ./mdlint.py docs/*.md
+
+    echo Checking formatting
+    fmt=""
+    for pkg in $(go list ./... | grep -v '/vendor/' ); do
+        s="$(gofmt -l $GOPATH/src/$pkg)"
+        if [ -n "$s" ]; then
+            fmt="$s\n$fmt"
+        fi
+    done
+
+    if [ -n "$fmt" ]; then
+        echo "Formatting wrong in following files:"
+        echo "$fmt"
+        exit 1
+    fi
+
+    # go vet
+    echo Running vet
+    for pkg in $(go list ./... | grep -v '/vendor/' ); do
+        go vet $pkg
+    done
+
+fi
+
+if [ "$UNIT" = 1 ]; then
+    ./get-deps.sh
+
+    # Prepare the coverage output profile.
+    rm -rf .coverage
+    mkdir .coverage
+    echo "mode: set" > .coverage/coverage.out
+
+    echo Building
+    go build -v github.com/snapcore/snapd/...
+
+    # tests
+    echo Running tests from $(pwd)
+    for pkg in $(go list ./... | grep -v '/vendor/' ); do    
+        $goctest -v -coverprofile=.coverage/profile.out $pkg
+        append_coverage .coverage/profile.out
+    done
+
+fi
+
+if [ "$SPREAD" = 1 ]; then
+    TMP_SPREAD="$(mktemp -d)"
+    addtrap "rm -rf \"$TMP_SPREAD\""
+
+    export PATH=$TMP_SPREAD:$PATH
+    ( cd $TMP_SPREAD && curl -s -O https://niemeyer.s3.amazonaws.com/spread-amd64.tar.gz && tar xzvf spread-amd64.tar.gz )
+
+    spread -v linode:
+fi
+
+if [ "$DEPRECATED" = 1 ]; then
+    ./get-deps.sh
+
+fi
+
+UNCLEAN="$(git status -s|grep ^??)" || true
+if [ -n "$UNCLEAN" ]; then
+    cat <<EOF
+
+There are files left in the git tree after the tests:
+
+$UNCLEAN
+EOF
+    exit 1
+fi
