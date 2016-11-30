@@ -1,3 +1,22 @@
+snapd (2.16-1) unstable; urgency=medium
+
+  [ Michael Hudson-Doyle ]
+  * New upstream release.
+  * Import gopkg.in/cheggaaa/pb.v1 rather than github.com/cheggaaa/pb.
+  * Switch to unconditional conflict against `snap` (Closes: #826884)
+  * Update Vcs-Git and Vcs-Browser to point to alioth. 
+
+  [ Steve Langasek ]
+  * Remove govendor from gbp.conf, and import Ubuntu tarball as our
+    orig.tar.gz (switching our packaging to non-native).
+  * Add Uploaders.
+  * Drop lintian overrides not used in Debian because we dynamically link
+    against golang-yaml.v2.
+  * Bump standards-version, no changes required.
+  * Add/fix various lintian overrides.
+
+ -- Steve Langasek <vorlon@debian.org>  Wed, 02 Nov 2016 12:14:52 +0000
+
 snapd (2.16) xenial; urgency=medium
 
   * New upstream release, LP: #1628425
@@ -784,6 +803,14 @@ snapd (2.0.8.1) UNRELEASED; urgency=medium
 
  -- Zygmunt Krynicki <zygmunt.krynicki@canonical.com>  Tue, 14 Jun 2016 15:55:30 +0200
 
+snapd (2.0.8+1) unstable; urgency=medium
+
+  * New upstream release.
+  * Update lintian-overrides for new paths.
+  * debian/copyright: fix a typo (thanks, lintian!)
+
+ -- Steve Langasek <vorlon@debian.org>  Fri, 10 Jun 2016 23:17:22 +0000
+
 snapd (2.0.8) xenial; urgency=medium
 
   * New upstream release: LP: #1589534
@@ -879,6 +906,22 @@ snapd (2.0.6) xenial; urgency=medium
     - snap: fixed snap empty list text LP: #1587445
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 02 Jun 2016 08:23:50 +0200
+
+snapd (2.0.5+1) unstable; urgency=medium
+
+  * Initial Debian upload.  Closes: #824943.
+  * release/release{,_test}.go: use /etc/os-release, which is guaranteed to
+    be part of base-files on both Ubuntu and Debian, instead of
+    /etc/lsb-release which doesn't exist at all on Debian.
+  * drop transitional packages, not needed in Debian.
+  * Add lintian overrides for false-positive detection of embedded libyaml.
+  * Update Vcs-* fields to point at maintainer's branch.
+  * Add a further lintian override for the /snap directory so that the
+    package is not automatically rejected by the NEW queue; this directory
+    location is certainly subject to discussion for Debian, but let's have
+    the discussion rather than blocking the package at the archive level.
+
+ -- Steve Langasek <vorlon@debian.org>  Mon, 23 May 2016 00:36:06 +0000
 
 snapd (2.0.5) xenial; urgency=medium
 

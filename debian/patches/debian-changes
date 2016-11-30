@@ -1,0 +1,59 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ snapd (2.16-1) unstable; urgency=medium
+ .
+   [ Michael Hudson-Doyle ]
+   * New upstream release.
+   * Import gopkg.in/cheggaaa/pb.v1 rather than github.com/cheggaaa/pb.
+   * Switch to unconditional conflict against `snap` (Closes: #826884)
+   * Update Vcs-Git and Vcs-Browser to point to alioth.
+ .
+   [ Steve Langasek ]
+   * Remove govendor from gbp.conf, and import Ubuntu tarball as our
+     orig.tar.gz (switching our packaging to non-native).
+   * Add Uploaders.
+   * Drop lintian overrides not used in Debian because we dynamically link
+     against golang-yaml.v2.
+   * Bump standards-version, no changes required.
+   * Add/fix various lintian overrides.
+Author: Steve Langasek <vorlon@debian.org>
+Bug-Debian: https://bugs.debian.org/826884
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2016-11-02
+
+--- snapd-2.16.orig/progress/progress.go
++++ snapd-2.16/progress/progress.go
+@@ -25,7 +25,7 @@ import (
+ 	"os"
+ 	"unicode"
+ 
+-	"github.com/cheggaaa/pb"
++	"gopkg.in/cheggaaa/pb.v1"
+ )
+ 
+ // Meter is an interface to show progress to the user
+--- snapd-2.16.orig/vendor/vendor.json
++++ snapd-2.16/vendor/vendor.json
+@@ -118,5 +118,5 @@
+ 			"revisionTime": "2015-02-24T22:57:58Z"
+ 		}
+ 	],
+-	"rootPath": "github.com/snapcore/build-area/snapd-tmp"
++	"rootPath": "github.com/snapcore/snapd"
+ }
